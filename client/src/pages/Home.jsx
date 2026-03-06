@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createRoom, joinRoom } from '../api';
+import { createRoom } from '../api';
 
 const glass = {
   background: 'rgba(139, 92, 246, 0.06)',
@@ -23,6 +23,7 @@ const inputStyle = {
   marginBottom: '1rem',
   display: 'block',
   transition: 'border-color 0.15s',
+  boxSizing: 'border-box',
 };
 
 const primaryBtn = {
@@ -41,9 +42,7 @@ const primaryBtn = {
 };
 
 export default function Home() {
-  const [tab, setTab] = useState('create');
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -56,19 +55,6 @@ export default function Home() {
       const data = await createRoom(name.trim());
       sessionStorage.setItem('session', JSON.stringify({ roomCode: data.code, participantId: data.participantId, isHost: true }));
       navigate(`/room/${data.code}`);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
-  }
-
-  async function handleJoin(e) {
-    e.preventDefault();
-    if (!name.trim()) return setError('Enter your name');
-    if (!code.trim()) return setError('Enter a room code');
-    setLoading(true); setError('');
-    try {
-      const data = await joinRoom(code.trim().toUpperCase(), name.trim());
-      sessionStorage.setItem('session', JSON.stringify({ roomCode: data.room.code, participantId: data.participantId, isHost: false }));
-      navigate(`/room/${data.room.code}`);
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }
@@ -88,55 +74,23 @@ export default function Home() {
         </div>
 
         {/* Card */}
-        <div style={glass}>
-          {/* Tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid rgba(139,92,246,0.15)', marginBottom: '1.5rem' }}>
-            {['create', 'join'].map(t => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setError(''); }}
-                style={{
-                  flex: 1, padding: '1rem', border: 'none', background: 'none',
-                  color: tab === t ? '#a78bfa' : 'var(--subtle)',
-                  fontWeight: tab === t ? 700 : 400, fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  borderBottom: tab === t ? '2px solid #8b5cf6' : '2px solid transparent',
-                  marginBottom: -1,
-                  transition: 'color 0.15s',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {t === 'create' ? 'Create room' : 'Join room'}
-              </button>
-            ))}
-          </div>
+        <div style={{ ...glass, padding: '1.75rem' }}>
+          <form onSubmit={handleCreate}>
+            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Your name</label>
+            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Alex" autoFocus />
+            <button style={{ ...primaryBtn, opacity: loading ? 0.6 : 1 }} disabled={loading}>
+              {loading ? 'Creating room…' : 'Create room'}
+            </button>
+          </form>
 
-          <div style={{ padding: '0 1.5rem 1.5rem' }}>
-            {tab === 'create' ? (
-              <form onSubmit={handleCreate}>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Your name</label>
-                <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Alex" autoFocus />
-                <button style={{ ...primaryBtn, opacity: loading ? 0.6 : 1 }} disabled={loading}>
-                  {loading ? 'Creating…' : 'Create room'}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleJoin}>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Room code</label>
-                <input style={{ ...inputStyle, fontSize: '1.2rem', letterSpacing: '0.15em', fontWeight: 700 }} value={code} onChange={e => setCode(e.target.value.toUpperCase())} placeholder="ABC123" autoFocus maxLength={6} />
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Your name</label>
-                <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Jordan" />
-                <button style={{ ...primaryBtn, opacity: loading ? 0.6 : 1 }} disabled={loading}>
-                  {loading ? 'Joining…' : 'Join room'}
-                </button>
-              </form>
-            )}
+          {error && (
+            <div style={{ marginTop: '0.75rem', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 10, color: '#f87171', fontSize: '0.875rem', padding: '0.7rem 0.9rem' }}>
+              {error}
+            </div>
+          )}
 
-            {error && (
-              <div style={{ marginTop: '0.75rem', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 10, color: '#f87171', fontSize: '0.875rem', padding: '0.7rem 0.9rem' }}>
-                {error}
-              </div>
-            )}
+          <div style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--subtle)' }}>
+            Got a link? Just open it — no code needed.
           </div>
         </div>
       </div>

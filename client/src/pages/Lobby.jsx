@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { advancePhase } from '../api';
 
 const glass = {
@@ -36,8 +37,10 @@ export default function Lobby({ room, session }) {
     finally { setLoading(false); }
   }
 
-  function copyCode() {
-    navigator.clipboard.writeText(room.code);
+  const inviteUrl = `${window.location.origin}/room/${room.code}`;
+
+  function copyLink() {
+    navigator.clipboard.writeText(inviteUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -48,24 +51,31 @@ export default function Lobby({ room, session }) {
 
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>Waiting for everyone</h1>
-          <p style={{ color: 'var(--muted)', marginTop: '0.3rem', fontSize: '0.9rem' }}>Share the code — friends join from any device</p>
+          <p style={{ color: 'var(--muted)', marginTop: '0.3rem', fontSize: '0.9rem' }}>Share the link or scan the QR code to invite friends</p>
         </div>
 
-        {/* Code card with glow */}
-        <div style={{ ...glassActive, padding: '2rem', marginBottom: '1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Room code</div>
-          <div style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '0.3em', color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
-            {room.code}
+        {/* Invite card with QR + link */}
+        <div style={{ ...glassActive, padding: '1.75rem', marginBottom: '1rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.25rem' }}>Invite friends</div>
+
+          {/* QR code */}
+          <div style={{ display: 'inline-flex', padding: '0.75rem', background: '#fff', borderRadius: 12, marginBottom: '1.25rem' }}>
+            <QRCodeSVG value={inviteUrl} size={140} />
           </div>
+
+          <div style={{ fontSize: '0.8rem', color: 'var(--subtle)', marginBottom: '1rem' }}>
+            Scan to join, or share the link
+          </div>
+
           <button
-            onClick={copyCode}
+            onClick={copyLink}
             style={{
-              marginTop: '1rem', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
-              borderRadius: 8, color: copied ? '#a78bfa' : 'var(--muted)', fontSize: '0.8rem',
-              padding: '0.4rem 1rem', cursor: 'pointer', transition: 'all 0.15s',
+              width: '100%', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
+              borderRadius: 10, color: copied ? '#a78bfa' : '#c4b5fd', fontSize: '0.85rem',
+              padding: '0.6rem 1rem', cursor: 'pointer', transition: 'all 0.15s', fontWeight: 600,
             }}
           >
-            {copied ? '✓ Copied' : 'Copy code'}
+            {copied ? '✓ Link copied!' : 'Copy invite link'}
           </button>
         </div>
 
