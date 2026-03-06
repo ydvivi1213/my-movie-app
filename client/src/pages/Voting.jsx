@@ -147,12 +147,12 @@ export default function Voting({ room, session }) {
   const total = room.recommendations.length;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f0f13', padding: '1.5rem 1rem' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent', padding: '1.5rem 1rem' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
 
         <div style={{ marginBottom: '1.25rem' }}>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff' }}>Rate the picks</h1>
-          <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 4 }}>
+          <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: 4 }}>
             {votersCount} of {room.participants.length} voting · You rated {ratedCount}/{total}
           </p>
         </div>
@@ -167,7 +167,7 @@ export default function Voting({ room, session }) {
         ))}
 
         {error && (
-          <div style={{ background: '#2a1515', border: '1px solid #5c2020', borderRadius: 10, color: '#e05c5c', fontSize: '0.875rem', padding: '0.75rem', marginTop: 8 }}>
+          <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 10, color: '#f87171', fontSize: '0.875rem', padding: '0.75rem', marginTop: 8 }}>
             {error}
           </div>
         )}
@@ -178,14 +178,14 @@ export default function Voting({ room, session }) {
             disabled={advanceLoading}
             style={{
               width: '100%', marginTop: 8, padding: '0.9rem', border: 'none', borderRadius: 12,
-              background: '#e05c5c', color: '#fff', fontSize: '1rem', fontWeight: 700,
+              background: 'linear-gradient(135deg, #7c3aed, #9f67fa)', boxShadow: '0 4px 20px rgba(124,58,237,0.45)', color: '#fff', fontSize: '1rem', fontWeight: 700,
               cursor: advanceLoading ? 'not-allowed' : 'pointer', opacity: advanceLoading ? 0.6 : 1,
             }}
           >
             {advanceLoading ? 'Loading…' : 'See results →'}
           </button>
         ) : (
-          <p style={{ color: '#555', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>
+          <p style={{ color: 'var(--subtle)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>
             Waiting for the host to reveal results…
           </p>
         )}

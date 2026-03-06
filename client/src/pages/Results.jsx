@@ -183,7 +183,7 @@ export default function Results({ room, session }) {
   const eliminated = room.recommendations.filter(m => !results?.find(r => r.id === m.id));
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f0f13', padding: '1.5rem 1rem' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent', padding: '1.5rem 1rem' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
 
         <div style={{ marginBottom: '1.25rem' }}>
@@ -191,29 +191,29 @@ export default function Results({ room, session }) {
             {room.winnerId ? 'Enjoy the movie 🎬' : 'Results are in'}
           </h1>
           {!room.winnerId && session.isHost && (
-            <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 4 }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: 4 }}>
               Tap a movie to pick tonight's winner
             </p>
           )}
           {!room.winnerId && !session.isHost && (
-            <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 4 }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: 4 }}>
               Waiting for the host to pick…
             </p>
           )}
         </div>
 
         {error && (
-          <div style={{ background: '#2a1515', border: '1px solid #5c2020', borderRadius: 10, color: '#e05c5c', fontSize: '0.875rem', padding: '0.75rem', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 10, color: '#f87171', fontSize: '0.875rem', padding: '0.75rem', marginBottom: 16 }}>
             {error}
           </div>
         )}
 
         {results === null && (
-          <div style={{ color: '#888', textAlign: 'center', padding: '3rem 0' }}>Loading…</div>
+          <div style={{ color: 'var(--muted)', textAlign: 'center', padding: '3rem 0' }}>Loading…</div>
         )}
 
         {results?.length === 0 && (
-          <div style={{ background: '#18181f', border: '1px solid #2a2a35', borderRadius: 12, padding: '2rem', textAlign: 'center', color: '#888' }}>
+          <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 12, padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
             No movies survived — everyone vetoed something different.
           </div>
         )}
@@ -236,7 +236,7 @@ export default function Results({ room, session }) {
 
         {survivors.length > 0 && room.winnerId && (
           <>
-            <div style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 0 10px' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 0 10px' }}>
               Also survived
             </div>
             {survivors.map((movie, i) => (
@@ -248,7 +248,7 @@ export default function Results({ room, session }) {
         {/* Eliminated */}
         {eliminated.length > 0 && (
           <>
-            <div style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '16px 0 10px' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '16px 0 10px' }}>
               Vetoed ({eliminated.length})
             </div>
             {eliminated.map(movie => <EliminatedCard key={movie.id} movie={movie} />)}

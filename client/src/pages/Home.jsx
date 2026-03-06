@@ -2,37 +2,46 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createRoom, joinRoom } from '../api';
 
-const s = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' },
-  container: { width: '100%', maxWidth: '420px' },
-  header: { textAlign: 'center', marginBottom: '2.5rem' },
-  h1: { fontSize: '2rem', fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' },
-  accent: { color: '#e05c5c' },
-  subtitle: { color: '#888', marginTop: '0.4rem', fontSize: '0.95rem' },
-  tabs: { display: 'flex', gap: '0', marginBottom: '1.5rem', borderRadius: '10px', overflow: 'hidden', border: '1px solid #2a2a35' },
-  tab: (active) => ({
-    flex: 1, padding: '0.7rem', border: 'none', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
-    background: active ? '#e05c5c' : '#18181f', color: active ? '#fff' : '#888',
-    transition: 'background 0.15s, color 0.15s',
-  }),
-  card: { background: '#18181f', border: '1px solid #2a2a35', borderRadius: '12px', padding: '1.5rem' },
-  label: { display: 'block', fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' },
-  input: {
-    width: '100%', background: '#0f0f13', border: '1px solid #2a2a35', borderRadius: '8px',
-    color: '#e8e8f0', fontSize: '0.95rem', padding: '0.65rem 0.85rem', outline: 'none',
-    marginBottom: '1rem', display: 'block',
-  },
-  btn: {
-    width: '100%', padding: '0.75rem', border: 'none', borderRadius: '8px',
-    background: '#e05c5c', color: '#fff', fontSize: '0.95rem', fontWeight: 600,
-    cursor: 'pointer', marginTop: '0.5rem',
-  },
-  btnDisabled: { opacity: 0.5, cursor: 'not-allowed' },
-  error: { background: '#2a1515', border: '1px solid #5c2020', borderRadius: '8px', color: '#e05c5c', fontSize: '0.875rem', padding: '0.75rem', marginTop: '0.75rem' },
+const glass = {
+  background: 'rgba(139, 92, 246, 0.06)',
+  border: '1px solid rgba(139, 92, 246, 0.2)',
+  borderRadius: 20,
+  backdropFilter: 'blur(24px)',
+  WebkitBackdropFilter: 'blur(24px)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
+};
+
+const inputStyle = {
+  width: '100%',
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(139, 92, 246, 0.2)',
+  borderRadius: 12,
+  color: '#f0eeff',
+  fontSize: '0.95rem',
+  padding: '0.75rem 1rem',
+  outline: 'none',
+  marginBottom: '1rem',
+  display: 'block',
+  transition: 'border-color 0.15s',
+};
+
+const primaryBtn = {
+  width: '100%',
+  padding: '0.85rem',
+  border: 'none',
+  borderRadius: 12,
+  background: 'linear-gradient(135deg, #7c3aed, #9f67fa)',
+  boxShadow: '0 4px 20px rgba(124, 58, 237, 0.45)',
+  color: '#fff',
+  fontSize: '0.95rem',
+  fontWeight: 700,
+  cursor: 'pointer',
+  marginTop: '0.25rem',
+  transition: 'opacity 0.15s, box-shadow 0.15s',
 };
 
 export default function Home() {
-  const [tab, setTab] = useState('create'); // 'create' | 'join'
+  const [tab, setTab] = useState('create');
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,79 +51,93 @@ export default function Home() {
   async function handleCreate(e) {
     e.preventDefault();
     if (!name.trim()) return setError('Enter your name');
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       const data = await createRoom(name.trim());
-      sessionStorage.setItem('session', JSON.stringify({
-        roomCode: data.code,
-        participantId: data.participantId,
-        isHost: true,
-      }));
+      sessionStorage.setItem('session', JSON.stringify({ roomCode: data.code, participantId: data.participantId, isHost: true }));
       navigate(`/room/${data.code}`);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
   }
 
   async function handleJoin(e) {
     e.preventDefault();
     if (!name.trim()) return setError('Enter your name');
     if (!code.trim()) return setError('Enter a room code');
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       const data = await joinRoom(code.trim().toUpperCase(), name.trim());
-      sessionStorage.setItem('session', JSON.stringify({
-        roomCode: data.room.code,
-        participantId: data.participantId,
-        isHost: false,
-      }));
+      sessionStorage.setItem('session', JSON.stringify({ roomCode: data.room.code, participantId: data.participantId, isHost: false }));
       navigate(`/room/${data.room.code}`);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
   }
 
   return (
-    <div style={s.page}>
-      <div style={s.container}>
-        <div style={s.header}>
-          <h1 style={s.h1}>Movie<span style={s.accent}>Time</span></h1>
-          <p style={s.subtitle}>Stop debating. Start watching.</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
+
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fff', letterSpacing: '-1px' }}>
+            Movie<span style={{ color: '#a78bfa' }}>Time</span>
+          </div>
+          <div style={{ color: 'var(--muted)', marginTop: '0.4rem', fontSize: '0.9rem' }}>
+            Stop debating. Start watching.
+          </div>
         </div>
 
-        <div style={s.tabs}>
-          <button style={s.tab(tab === 'create')} onClick={() => { setTab('create'); setError(''); }}>Create room</button>
-          <button style={s.tab(tab === 'join')} onClick={() => { setTab('join'); setError(''); }}>Join room</button>
-        </div>
-
-        <div style={s.card}>
-          {tab === 'create' ? (
-            <form onSubmit={handleCreate}>
-              <label style={s.label}>Your name</label>
-              <input style={s.input} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Alex" autoFocus />
-              <button style={{ ...s.btn, ...(loading ? s.btnDisabled : {}) }} disabled={loading}>
-                {loading ? 'Creating…' : 'Create room'}
+        {/* Card */}
+        <div style={glass}>
+          {/* Tabs */}
+          <div style={{ display: 'flex', borderBottom: '1px solid rgba(139,92,246,0.15)', marginBottom: '1.5rem' }}>
+            {['create', 'join'].map(t => (
+              <button
+                key={t}
+                onClick={() => { setTab(t); setError(''); }}
+                style={{
+                  flex: 1, padding: '1rem', border: 'none', background: 'none',
+                  color: tab === t ? '#a78bfa' : 'var(--subtle)',
+                  fontWeight: tab === t ? 700 : 400, fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  borderBottom: tab === t ? '2px solid #8b5cf6' : '2px solid transparent',
+                  marginBottom: -1,
+                  transition: 'color 0.15s',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {t === 'create' ? 'Create room' : 'Join room'}
               </button>
-            </form>
-          ) : (
-            <form onSubmit={handleJoin}>
-              <label style={s.label}>Room code</label>
-              <input style={s.input} value={code} onChange={e => setCode(e.target.value.toUpperCase())} placeholder="e.g. ABC123" autoFocus />
-              <label style={s.label}>Your name</label>
-              <input style={s.input} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Jordan" />
-              <button style={{ ...s.btn, ...(loading ? s.btnDisabled : {}) }} disabled={loading}>
-                {loading ? 'Joining…' : 'Join room'}
-              </button>
-            </form>
-          )}
+            ))}
+          </div>
 
-          {error && <div style={s.error}>{error}</div>}
+          <div style={{ padding: '0 1.5rem 1.5rem' }}>
+            {tab === 'create' ? (
+              <form onSubmit={handleCreate}>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Your name</label>
+                <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Alex" autoFocus />
+                <button style={{ ...primaryBtn, opacity: loading ? 0.6 : 1 }} disabled={loading}>
+                  {loading ? 'Creating…' : 'Create room'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleJoin}>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Room code</label>
+                <input style={{ ...inputStyle, fontSize: '1.2rem', letterSpacing: '0.15em', fontWeight: 700 }} value={code} onChange={e => setCode(e.target.value.toUpperCase())} placeholder="ABC123" autoFocus maxLength={6} />
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Your name</label>
+                <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Jordan" />
+                <button style={{ ...primaryBtn, opacity: loading ? 0.6 : 1 }} disabled={loading}>
+                  {loading ? 'Joining…' : 'Join room'}
+                </button>
+              </form>
+            )}
+
+            {error && (
+              <div style={{ marginTop: '0.75rem', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 10, color: '#f87171', fontSize: '0.875rem', padding: '0.7rem 0.9rem' }}>
+                {error}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
