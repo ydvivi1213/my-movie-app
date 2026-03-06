@@ -1,45 +1,163 @@
 import { useState, useEffect } from 'react';
 import { setWinner, getResults } from '../api';
 
-const s = {
-  page: { minHeight: '100vh', padding: '2rem 1rem', display: 'flex', justifyContent: 'center' },
-  container: { width: '100%', maxWidth: '560px' },
-  winnerBanner: {
-    background: 'linear-gradient(135deg, #1a3a28, #0f2a1c)', border: '1px solid #4caf7d',
-    borderRadius: '14px', padding: '1.5rem', marginBottom: '1.5rem', textAlign: 'center',
-  },
-  winnerLabel: { fontSize: '0.75rem', color: '#4caf7d', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
-  winnerTitle: { fontSize: '1.6rem', fontWeight: 800, color: '#fff' },
-  winnerYear: { color: '#888', fontSize: '0.9rem', marginLeft: '0.4rem' },
-  winnerReason: { color: '#aaa', fontSize: '0.875rem', marginTop: '0.5rem', lineHeight: 1.5 },
-  movieCard: (isWinner, isEliminated) => ({
-    background: '#18181f',
-    border: `1px solid ${isWinner ? '#4caf7d' : isEliminated ? '#2a2a35' : '#2a2a35'}`,
-    borderRadius: '12px', padding: '1.25rem 1.5rem', marginBottom: '0.75rem',
-    display: 'flex', alignItems: 'flex-start', gap: '1rem',
-    opacity: isEliminated ? 0.4 : 1,
-    cursor: 'pointer',
-    transition: 'border-color 0.15s, opacity 0.15s',
-  }),
-  movieInfo: { flex: 1 },
-  movieTitle: { fontSize: '1rem', fontWeight: 700, color: '#fff' },
-  movieYear: { color: '#666', fontSize: '0.85rem', marginLeft: '0.4rem' },
-  movieReason: { color: '#aaa', fontSize: '0.85rem', marginTop: '0.3rem', lineHeight: 1.5 },
-  voteBar: { display: 'flex', gap: '0.75rem', marginTop: '0.6rem', fontSize: '0.875rem' },
-  upVote: { color: '#4caf7d' },
-  noVote: { color: '#555', fontStyle: 'italic', fontSize: '0.8rem' },
-  genreTags: { display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.6rem' },
-  genreTag: { background: '#22222c', border: '1px solid #2e2e3c', borderRadius: '20px', color: '#888', fontSize: '0.75rem', padding: '0.2rem 0.6rem' },
-  rank: (n) => ({
-    minWidth: 40, height: 40, borderRadius: '8px', display: 'flex', alignItems: 'center',
-    justifyContent: 'center', fontWeight: 800, fontSize: '1rem', flexShrink: 0,
-    background: n === 1 ? '#e05c5c' : '#22222c', color: '#fff',
-  }),
-  sectionLabel: { fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem', marginTop: '1.5rem' },
-  emptyState: { color: '#888', fontSize: '0.9rem', padding: '1.5rem', textAlign: 'center', background: '#18181f', borderRadius: '12px', border: '1px solid #2a2a35' },
-  pickHint: { color: '#888', fontSize: '0.8rem', textAlign: 'center', marginTop: '0.5rem' },
-  error: { background: '#2a1515', border: '1px solid #5c2020', borderRadius: '8px', color: '#e05c5c', fontSize: '0.875rem', padding: '0.75rem', marginTop: '0.75rem' },
-};
+function posterGradient(title) {
+  const palettes = [
+    ['#0f2027', '#203a43', '#2c5364'],
+    ['#1a1a2e', '#16213e', '#0f3460'],
+    ['#2d1b69', '#11998e', '#38ef7d'],
+    ['#1f0036', '#6b0f1a', '#b91372'],
+    ['#0d0d0d', '#1a1a2e', '#4a00e0'],
+    ['#16222a', '#3a6073', '#16222a'],
+    ['#0f0c29', '#302b63', '#24243e'],
+  ];
+  const idx = (title.charCodeAt(0) + title.length) % palettes.length;
+  const [a, b, c] = palettes[idx];
+  return `linear-gradient(135deg, ${a}, ${b}, ${c})`;
+}
+
+function WinnerCard({ movie }) {
+  return (
+    <div style={{
+      position: 'relative', borderRadius: 20, overflow: 'hidden',
+      height: 340, marginBottom: 24,
+      boxShadow: '0 8px 40px rgba(76,175,125,0.35)',
+      border: '2px solid #4caf7d',
+    }}>
+      {movie.posterUrl
+        ? <img src={movie.posterUrl} alt={movie.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', height: '100%', background: posterGradient(movie.title) }} />
+      }
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.1) 100%)',
+      }} />
+
+      {/* Tonight's pick badge */}
+      <div style={{
+        position: 'absolute', top: 16, left: 16,
+        background: '#4caf7d', borderRadius: 10,
+        padding: '0.35rem 0.85rem', fontSize: '0.75rem', fontWeight: 800,
+        color: '#fff', letterSpacing: '0.05em', textTransform: 'uppercase',
+      }}>
+        ✓ Tonight's Pick
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.5rem' }}>
+        <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>
+          {movie.title}
+        </div>
+        <div style={{ color: '#aaa', fontSize: '0.9rem', marginTop: 4 }}>{movie.year}</div>
+        <div style={{ color: '#ccc', fontSize: '0.85rem', marginTop: 8, lineHeight: 1.5 }}>
+          {movie.reason}
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {movie.genres.map(g => (
+            <span key={g} style={{
+              background: 'rgba(255,255,255,0.15)', borderRadius: 20,
+              padding: '0.2rem 0.6rem', fontSize: '0.75rem', color: '#ddd',
+            }}>{g}</span>
+          ))}
+        </div>
+        <div style={{ color: '#4caf7d', fontWeight: 700, marginTop: 10, fontSize: '0.9rem' }}>
+          👍 {movie.thumbsUp} everyone agreed
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SurvivorCard({ movie, rank, canPick, onPick }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      onClick={canPick ? onPick : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'relative', borderRadius: 16, overflow: 'hidden',
+        height: 200, marginBottom: 10,
+        border: `2px solid ${hovered && canPick ? '#e05c5c' : '#2a2a35'}`,
+        transform: hovered && canPick ? 'scale(1.01)' : 'scale(1)',
+        transition: 'transform 0.15s, border-color 0.15s',
+        cursor: canPick ? 'pointer' : 'default',
+      }}
+    >
+      {movie.posterUrl
+        ? <img src={movie.posterUrl} alt={movie.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', height: '100%', background: posterGradient(movie.title) }} />
+      }
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.1) 100%)',
+      }} />
+
+      <div style={{
+        position: 'absolute', top: 12, left: 12,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        borderRadius: 8, padding: '0.25rem 0.6rem',
+        fontSize: '0.75rem', fontWeight: 700, color: '#fff',
+      }}>
+        #{rank}
+      </div>
+
+      {canPick && (
+        <div style={{
+          position: 'absolute', top: 12, right: 12,
+          background: 'rgba(224,92,92,0.85)', backdropFilter: 'blur(4px)',
+          borderRadius: 8, padding: '0.25rem 0.6rem',
+          fontSize: '0.72rem', fontWeight: 700, color: '#fff',
+          opacity: hovered ? 1 : 0, transition: 'opacity 0.15s',
+        }}>
+          Tap to pick
+        </div>
+      )}
+
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1rem' }}>
+        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#fff' }}>
+          {movie.title}
+          <span style={{ fontWeight: 400, fontSize: '0.8rem', color: '#aaa', marginLeft: 8 }}>{movie.year}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+          <span style={{ color: '#4caf7d', fontSize: '0.85rem', fontWeight: 600 }}>👍 {movie.thumbsUp}</span>
+          <div style={{ display: 'flex', gap: 5 }}>
+            {movie.genres.map(g => (
+              <span key={g} style={{
+                background: 'rgba(255,255,255,0.12)', borderRadius: 20,
+                padding: '0.15rem 0.5rem', fontSize: '0.7rem', color: '#ccc',
+              }}>{g}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EliminatedCard({ movie }) {
+  return (
+    <div style={{
+      position: 'relative', borderRadius: 12, overflow: 'hidden',
+      height: 80, marginBottom: 8, opacity: 0.4,
+      border: '1px solid #2a2a35',
+    }}>
+      {movie.posterUrl
+        ? <img src={movie.posterUrl} alt={movie.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: 'grayscale(100%)' }} />
+        : <div style={{ width: '100%', height: '100%', background: posterGradient(movie.title), filter: 'grayscale(100%)' }} />
+      }
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} />
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 1rem', gap: 10 }}>
+        <span style={{ color: '#e05c5c', fontSize: '1rem' }}>✕</span>
+        <span style={{ color: '#888', fontWeight: 600, fontSize: '0.9rem' }}>{movie.title}</span>
+        <span style={{ color: '#555', fontSize: '0.8rem' }}>{movie.year}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function Results({ room, session }) {
   const [results, setResults] = useState(null);
@@ -49,11 +167,10 @@ export default function Results({ room, session }) {
     getResults(room.code)
       .then(data => setResults(data.results))
       .catch(err => setError(err.message));
-  }, [room.code]);
+  }, [room.code, room.winnerId]);
 
   async function handlePickWinner(movieId) {
-    if (!session.isHost) return;
-    setError('');
+    if (!session.isHost || room.winnerId) return;
     try {
       await setWinner(room.code, session.participantId, movieId);
     } catch (err) {
@@ -61,93 +178,83 @@ export default function Results({ room, session }) {
     }
   }
 
-  const winner = room.winnerId && results
-    ? results.find(m => m.id === room.winnerId)
-    : null;
-
-  const eliminated = room.recommendations.filter(
-    m => !results?.find(r => r.id === m.id)
-  );
+  const winner = room.winnerId && results?.find(m => m.id === room.winnerId);
+  const survivors = results?.filter(m => m.id !== room.winnerId) ?? [];
+  const eliminated = room.recommendations.filter(m => !results?.find(r => r.id === m.id));
 
   return (
-    <div style={s.page}>
-      <div style={s.container}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff' }}>
-            {room.winnerId ? 'Tonight\'s pick' : 'Results are in'}
+    <div style={{ minHeight: '100vh', background: '#0f0f13', padding: '1.5rem 1rem' }}>
+      <div style={{ maxWidth: 480, margin: '0 auto' }}>
+
+        <div style={{ marginBottom: '1.25rem' }}>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff' }}>
+            {room.winnerId ? 'Enjoy the movie 🎬' : 'Results are in'}
           </h1>
           {!room.winnerId && session.isHost && (
-            <p style={{ color: '#888', fontSize: '0.875rem', marginTop: '0.3rem' }}>Tap a movie to pick it as tonight's winner</p>
+            <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 4 }}>
+              Tap a movie to pick tonight's winner
+            </p>
+          )}
+          {!room.winnerId && !session.isHost && (
+            <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 4 }}>
+              Waiting for the host to pick…
+            </p>
           )}
         </div>
 
-        {winner && (
-          <div style={s.winnerBanner}>
-            <div style={s.winnerLabel}>Tonight's pick</div>
-            <div>
-              <span style={s.winnerTitle}>{winner.title}</span>
-              <span style={s.winnerYear}>{winner.year}</span>
-            </div>
-            <div style={s.winnerReason}>{winner.reason}</div>
+        {error && (
+          <div style={{ background: '#2a1515', border: '1px solid #5c2020', borderRadius: 10, color: '#e05c5c', fontSize: '0.875rem', padding: '0.75rem', marginBottom: 16 }}>
+            {error}
           </div>
         )}
 
-        {error && <div style={s.error}>{error}</div>}
+        {results === null && (
+          <div style={{ color: '#888', textAlign: 'center', padding: '3rem 0' }}>Loading…</div>
+        )}
 
-        {results === null ? (
-          <div style={{ color: '#888', textAlign: 'center', padding: '2rem' }}>Loading results…</div>
-        ) : results.length === 0 ? (
-          <div style={s.emptyState}>No movies survived — everyone vetoed something different. Try again?</div>
-        ) : (
+        {results?.length === 0 && (
+          <div style={{ background: '#18181f', border: '1px solid #2a2a35', borderRadius: 12, padding: '2rem', textAlign: 'center', color: '#888' }}>
+            No movies survived — everyone vetoed something different.
+          </div>
+        )}
+
+        {/* Winner hero card */}
+        {winner && <WinnerCard movie={winner} />}
+
+        {/* Remaining survivors — host can pick */}
+        {results && results.length > 0 && !room.winnerId && (
+          results.map((movie, i) => (
+            <SurvivorCard
+              key={movie.id}
+              movie={movie}
+              rank={i + 1}
+              canPick={session.isHost}
+              onPick={() => handlePickWinner(movie.id)}
+            />
+          ))
+        )}
+
+        {survivors.length > 0 && room.winnerId && (
           <>
-            <div style={s.sectionLabel}>Everyone agrees on ({results.length})</div>
-            {results.map((movie, i) => (
-              <div
-                key={movie.id}
-                style={s.movieCard(movie.id === room.winnerId, false)}
-                onClick={() => !room.winnerId && handlePickWinner(movie.id)}
-              >
-                <div style={s.rank(i + 1)}>#{i + 1}</div>
-                <div style={s.movieInfo}>
-                  <div>
-                    <span style={s.movieTitle}>{movie.title}</span>
-                    <span style={s.movieYear}>{movie.year}</span>
-                  </div>
-                  <div style={s.movieReason}>{movie.reason}</div>
-                  <div style={s.voteBar}>
-                    <span style={s.upVote}>👍 {movie.thumbsUp}</span>
-                  </div>
-                  <div style={s.genreTags}>
-                    {movie.genres.map(g => <span key={g} style={s.genreTag}>{g}</span>)}
-                  </div>
-                </div>
-              </div>
+            <div style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 0 10px' }}>
+              Also survived
+            </div>
+            {survivors.map((movie, i) => (
+              <SurvivorCard key={movie.id} movie={movie} rank={i + 2} canPick={false} />
             ))}
           </>
         )}
 
-        {!session.isHost && !room.winnerId && (
-          <div style={{ color: '#888', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>
-            Waiting for the host to pick the winner…
-          </div>
-        )}
-
+        {/* Eliminated */}
         {eliminated.length > 0 && (
           <>
-            <div style={s.sectionLabel}>Vetoed ({eliminated.length})</div>
-            {eliminated.map(movie => (
-              <div key={movie.id} style={s.movieCard(false, true)}>
-                <div style={{ ...s.rank(0), background: '#2a1515' }}>✕</div>
-                <div style={s.movieInfo}>
-                  <div>
-                    <span style={s.movieTitle}>{movie.title}</span>
-                    <span style={s.movieYear}>{movie.year}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <div style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '16px 0 10px' }}>
+              Vetoed ({eliminated.length})
+            </div>
+            {eliminated.map(movie => <EliminatedCard key={movie.id} movie={movie} />)}
           </>
         )}
+
       </div>
     </div>
   );

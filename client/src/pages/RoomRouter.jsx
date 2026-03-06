@@ -11,7 +11,14 @@ export default function RoomRouter() {
   const navigate = useNavigate();
 
   const rawSession = sessionStorage.getItem('session');
-  const session = rawSession ? JSON.parse(rawSession) : null;
+  const urlParams = new URLSearchParams(window.location.search);
+  const session = rawSession ? JSON.parse(rawSession)
+    : urlParams.get('participantId') ? {
+        roomCode: code,
+        participantId: urlParams.get('participantId'),
+        isHost: urlParams.get('isHost') === 'true',
+      }
+    : null;
 
   // If no session or session is for a different room, redirect home
   if (!session || session.roomCode !== code) {

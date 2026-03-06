@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { enrichWithPosters } from './tmdbService.js';
 
 const client = new Anthropic();
 
@@ -41,5 +42,7 @@ export async function getRecommendations(participants) {
 
   const raw = message.content[0].text.trim();
   const data = JSON.parse(raw);
-  return data.recommendations;
+
+  // Enrich with TMDB posters (no-op if TMDB_API_KEY not set)
+  return enrichWithPosters(data.recommendations);
 }
